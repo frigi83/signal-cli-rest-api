@@ -17,6 +17,8 @@ ARG GRAALVM_JAVA_VERSION
 ARG GRAALVM_VERSION
 ARG BUILD_VERSION_ARG
 ARG SIGNAL_CLI_NATIVE_PACKAGE_VERSION
+ARG SIGNAL_CLI_UID=1000
+ARG SIGNAL_CLI_GID=1000
 
 COPY ext/libraries/libsignal-client/v${LIBSIGNAL_CLIENT_VERSION} /tmp/libsignal-client-libraries
 
@@ -158,8 +160,8 @@ COPY --from=buildcontainer /tmp/signal-cli-rest-api-src/scripts/jsonrpc2-helper 
 COPY entrypoint.sh /entrypoint.sh
 
 
-RUN groupadd -g 1000 signal-api \
-	&& useradd --no-log-init -M -d /home -s /bin/bash -u 1000 -g 1000 signal-api \
+RUN groupadd -g $SIGNAL_CLI_GID signal-api \
+	&& useradd --no-log-init -M -d /home -s /bin/bash -u 1000 -g SIGNAL_CLI_UID signal-api \
 	&& ln -s /opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli /usr/bin/signal-cli \
 	&& ln -s /opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli-native /usr/bin/signal-cli-native \
 	&& mkdir -p /signal-cli-config/ \
@@ -175,8 +177,7 @@ RUN arch="$(uname -m)"; \
 EXPOSE ${PORT}
 
 ENV SIGNAL_CLI_CONFIG_DIR=/home/.local/share/signal-cli
-ENV SIGNAL_CLI_UID=1000
-ENV SIGNAL_CLI_GID=1000
+
 
 ENTRYPOINT ["/entrypoint.sh"]
 
